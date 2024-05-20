@@ -21,6 +21,7 @@ def get_train_test_data(df):
     test_data : pandas.DataFrame
         The testing data
     """
+    df = df.sort_values("date_saisie")
     train_data = df[
         (df["date_saisie"] >= "2006-01-01") & (df["date_saisie"] <= "2018-12-31")
     ]
