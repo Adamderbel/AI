@@ -1,8 +1,11 @@
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 from sklearn.base import BaseEstimator, RegressorMixin
 from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.models import Sequential
+
+tf.get_logger().setLevel("INFO")
 
 
 def get_train_test_data(df):
