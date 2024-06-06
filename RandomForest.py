@@ -7,6 +7,7 @@ def load_data(file_path):
     return pd.read_csv(file_path, low_memory=False)
 
 def preprocess_data(df):
+    
     """Preprocess data: filter dates, sort, encode labels, and remove specific codes."""
     df['date_saisie'] = pd.to_datetime(df['date_saisie'])
     df = df[(df['date_saisie'] >= '2006-01-01') & (df['date_saisie'] <= '2023-12-31')]
@@ -19,7 +20,7 @@ def preprocess_data(df):
     df = df[~df['Fk_prestation_code'].isin(codes_to_remove)]
     
     return df, df[['Fk_prestation_code', 'Fk_famille_prestation']].drop_duplicates()
-
+    
 def train_test_split(df):
     """Split the data into training and testing sets."""
     X_train = df[(df['date_saisie'].dt.year >= 2006) & (df['date_saisie'].dt.year <= 2018)][['Fk_prestation_code']]

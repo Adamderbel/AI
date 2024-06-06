@@ -46,27 +46,7 @@ def fit_sarimax(train_data, test_data):
     
     return predictions
 
-def forecast_for_years(df, years):
-    """Forecast for given years and return the results."""
-    results = list()
-    all_prestation = df.Fk_prestation_code.unique()
-    
-    for prestation in tqdm(all_prestation):
-        sub_df = df[df.Fk_prestation_code == prestation]
-        train_data = sub_df.loc['2010':'2018']
-        test_data = sub_df[sub_df.index.year == years[0]]
-        
-        predictions = fit_sarimax(train_data, test_data)
-        
-        prestation_result = pd.DataFrame({
-            "montant_predit": predictions,
-            "date": list(test_data.index),
-            "Fk_prestation_code": prestation
-        })
-        
-        results.append(prestation_result)
-    
-    return pd.concat(results)
+
 
 def forecast_future(df, start_year, end_year):
     """Forecast for future periods and return the results."""
@@ -83,15 +63,22 @@ def forecast_future(df, start_year, end_year):
         
         predictions = result.predict(start=len(train_data), end=len(train_data) + len(future_periods) - 1)
         
-        prestation_result = pd.DataFrame({
-            "montant_predit": predictions,
-            "date": future_periods,
-            "Fk_prestation_code": prestation
+        future_results = pd.DataFrame({
+        "montant_predit": predictions.values,
+        "date": future_periods,
+        "Fk_prestation_code": prestation
         })
+        actual_2023 = sub_df.loc['2023'][['montant_HT']].reset_index()
+        actual_2023['Fk_prestation_code'] = prestation
+        actual_2023.rename(columns={'montant_HT': 'montant_predit','date_saisie':'date'}, inplace=True)
+        
+        # Concatenate actual 2023 data with future predictions
+        prestation_result = pd.concat([actual_2023, future_results], ignore_index=True)
         
         results.append(prestation_result)
-    
     return pd.concat(results)
+
+
 
 def main():
     file_path = "D:\\PFE\\Fact_Table_Rev.csv"
@@ -103,18 +90,12 @@ def main():
     # Check index type
     check_index_type(df)
     
-    # Forecast for 2019
-    final_pred = forecast_for_years(df, [2019])
-    test_data = df[df.index.year == 2019].reset_index()
-    test_data.rename(columns={"date_saisie": 'date'}, inplace=True)
-    merged_data = pd.merge(test_data, final_pred, how='left', on=['date', 'Fk_prestation_code'])
-    merged_data = merged_data.merge(mapping_df, on='Fk_prestation_code')
-    merged_data.to_csv('Predsarimax2019.csv', index=False)
     
     # Forecast for 2024 and beyond
-    final_results = forecast_future(df, 2024, 2026)
+    final_results = forecast_future(df, 2024, 2100)
     merged_data1 = final_results.merge(mapping_df, on='Fk_prestation_code')
-    merged_data1.to_csv('Pred2024andmore.csv', index=False)
+    merged_data1.to_csv('Predfuturewithoutcovide.csv', index=False)
+    
     
 if __name__ == "__main__":
     main()
